@@ -1,0 +1,27 @@
+{
+    "name": "4geo35/article-labels",
+    "description": "Label model for articles",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vladimir",
+            "email": "aweram-team@yandex.ru"
+        }
+    ],
+    "require": {
+        "4geo35/article-pages": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "GIS\\ArticleLabels\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "GIS\\ArticleLabels\\ArticleLabelsServiceProvider"
+            ]
+        }
+    }
+}
