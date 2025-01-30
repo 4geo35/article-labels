@@ -2,6 +2,7 @@
 
 namespace GIS\ArticleLabels\Livewire\Admin\ArticleLabels;
 
+use GIS\ArticleLabels\Interfaces\ArticleLabelInterface;
 use GIS\ArticleLabels\Models\ArticleLabel;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -14,6 +15,8 @@ class IndexWire extends Component
     public string $slug = "";
 
     public int|null $labelId = null;
+
+    public bool $hasSearch = false;
 
     public function rules(): array
     {
@@ -35,7 +38,11 @@ class IndexWire extends Component
 
     public function render(): View
     {
-        return view('al::livewire.admin.article-labels.index-wire');
+        $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
+        $labels = $labelModelClass::query()
+            ->orderBy("priority")
+            ->get();
+        return view('al::livewire.admin.article-labels.index-wire', compact("labels"));
     }
 
     public function showList(): void
@@ -63,8 +70,31 @@ class IndexWire extends Component
         $this->displayList = false;
     }
 
+    public function reorderItems(array $newOrder): void
+    {
+        foreach ($newOrder as $priority => $id) {
+            $this->labelId = $id;
+            $label = $this->findLabel();
+            if (! $label) continue;
+            $label->priority = $priority;
+            $label->save();
+        }
+        $this->resetFields();
+    }
+
     protected function resetFields(): void
     {
         $this->reset("title", "slug", "labelId");
+    }
+
+    protected function findLabel(): ?ArticleLabelInterface
+    {
+        $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
+        $label = $labelModelClass::find($this->labelId);
+        if (! $label) {
+            session()->flash("labels-error", "Метка не найдена");
+            return null;
+        }
+        return $label;
     }
 }
