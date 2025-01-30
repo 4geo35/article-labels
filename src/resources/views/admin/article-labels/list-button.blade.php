@@ -1,0 +1,1 @@
+<livewire:al-label-index />

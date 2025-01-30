@@ -3,6 +3,8 @@
 namespace GIS\ArticleLabels;
 
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use GIS\ArticleLabels\Livewire\Admin\ArticleLabels\IndexWire as LabelIndexWire;
 
 class ArticleLabelsServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,10 @@ class ArticleLabelsServiceProvider extends ServiceProvider
 
     protected function addLivewireComponents(): void
     {
-
+        $component = config("article-labels.customLabelIndexComponent");
+        Livewire::component(
+            "al-label-index",
+            $component ?? LabelIndexWire::class
+        );
     }
 }
