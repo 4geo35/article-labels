@@ -1,3 +1,8 @@
 <?php
 
-return [];
+return [
+    // Admin
+    // ArticleLabels
+    "customLabelModel" => null,
+    "customLabelObserver" => null,
+];

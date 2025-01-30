@@ -2,6 +2,8 @@
 
 namespace GIS\ArticleLabels;
 
+use GIS\ArticleLabels\Models\ArticleLabel;
+use GIS\ArticleLabels\Observers\ArticleLabelObserver;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use GIS\ArticleLabels\Livewire\Admin\ArticleLabels\IndexWire as LabelIndexWire;
@@ -15,6 +17,11 @@ class ArticleLabelsServiceProvider extends ServiceProvider
 
         // Livewire
         $this->addLivewireComponents();
+
+        // Observers
+        $labelObserverClass = config("article-labels.customLabelObserver") ?? ArticleLabelObserver::class;
+        $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
+        $labelModelClass::observe($labelObserverClass);
     }
 
     public function register(): void
