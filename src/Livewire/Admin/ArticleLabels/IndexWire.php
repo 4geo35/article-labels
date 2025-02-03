@@ -10,9 +10,14 @@ use Livewire\Component;
 class IndexWire extends Component
 {
     public bool $displayList = false;
+    public bool $displayEdit = false;
+    public bool $displayDelete = false;
 
     public string $title = "";
     public string $slug = "";
+
+    public string $updateTitle = "";
+    public string $updateSlug = "";
 
     public int|null $labelId = null;
 
@@ -20,12 +25,17 @@ class IndexWire extends Component
 
     public function rules(): array
     {
-        $uniqueCondition = "unique:article_labels,slug";
-        if ($this->labelId) $uniqueCondition .= ",{$this->labelId}";
-        return [
-            "title" => ["required", "string", "max:50"],
-            "slug" => ["nullable", "string", "max:50", $uniqueCondition],
-        ];
+        if ($this->labelId) {
+            return [
+                "updateTitle" => ["required", "string", "max:50"],
+                "updateSlug" => ["nullable", "string", "max:50", "unique:article_labels,slug,{$this->labelId}"],
+            ];
+        } else {
+            return [
+                "title" => ["required", "string", "max:50"],
+                "slug" => ["nullable", "string", "max:50", "unique:article_labels,slug"],
+            ];
+        }
     }
 
     public function validationAttributes(): array
@@ -70,6 +80,62 @@ class IndexWire extends Component
         $this->displayList = false;
     }
 
+    public function showEdit(int $labelId): void
+    {
+        $this->resetFields();
+        $this->labelId = $labelId;
+        $label = $this->findLabel();
+        if (! $label) return;
+        $this->displayEdit = true;
+        $this->updateTitle = $label->title;
+        $this->updateSlug = $label->slug;
+    }
+
+    public function update(): void
+    {
+        $label = $this->findLabel();
+        if (! $label) return;
+        $this->validate();
+        $label->update([
+            "title" => $this->updateTitle,
+            "slug" => $this->updateSlug,
+        ]);
+
+        session()->flash("labels-success", "Метка успешно обновлена");
+        $this->closeEdit();
+    }
+
+    public function closeEdit(): void
+    {
+        $this->resetFields();
+        $this->displayEdit = false;
+    }
+
+    public function showDelete(int $labelId): void
+    {
+        $this->resetFields();
+        $this->labelId = $labelId;
+        $label = $this->findLabel();
+        if (! $label) return;
+        $this->displayDelete = true;
+    }
+
+    public function confirmDelete(): void
+    {
+        $label = $this->findLabel();
+        if (! $label) return;
+        $label->delete();
+        $this->displayDelete = false;
+        $this->resetFields();
+        session()->flash("labels-success", "Метка успешно удалена");
+    }
+
+    public function closeDelete(): void
+    {
+        $this->resetFields();
+        $this->displayDelete = false;
+    }
+
     public function reorderItems(array $newOrder): void
     {
         foreach ($newOrder as $priority => $id) {
@@ -84,7 +150,7 @@ class IndexWire extends Component
 
     protected function resetFields(): void
     {
-        $this->reset("title", "slug", "labelId");
+        $this->reset("title", "slug", "labelId", "updateTitle", "updateSlug");
     }
 
     protected function findLabel(): ?ArticleLabelInterface
