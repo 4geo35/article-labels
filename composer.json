@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "4geo35/article-pages": "@dev"
+        "4geo35/article-pages": "^1.0"
     },
     "autoload": {
         "psr-4": {
