@@ -1,8 +1,10 @@
-<div class="mt-indent">
+<div class="">
     <x-tt::table drag-root>
         <x-slot name="head">
             <tr>
+                @can("order", config("article-labels.customLabelModel") ?? \GIS\ArticleLabels\Models\ArticleLabel::class)
                 <x-tt::table.heading></x-tt::table.heading>
+                @endcan
                 <x-tt::table.heading class="text-left text-nowrap">Заголовок</x-tt::table.heading>
                 <x-tt::table.heading class="text-left text-nowrap">Адресная строка</x-tt::table.heading>
                 <x-tt::table.heading>Действия</x-tt::table.heading>
@@ -10,10 +12,14 @@
         </x-slot>
         <x-slot name="body">
             @foreach($labels as $key => $item)
-                <tr drag-item="{{ $item->id }}" drag-item-order="{{ $key }}" wire:key="{{ $item->id }}">
-                    <td>
-                        <x-tt::ico.bars drag-grab class="text-secondary mr-indent cursor-grab" />
-                    </td>
+                    @can("order", config("article-labels.customLabelModel") ?? \GIS\ArticleLabels\Models\ArticleLabel::class)
+                        <tr drag-item="{{ $item->id }}" drag-item-order="{{ $key }}" wire:key="{{ $item->id }}">
+                            <td>
+                                <x-tt::ico.bars drag-grab class="text-secondary mr-indent cursor-grab" />
+                            </td>
+                    @else
+                        <tr wire:key="{{ $item->id }}">
+                    @endcan
                     @if ($displayEdit && $labelId === $item->id)
                         <td colspan="3">
                             <form wire:submit.prevent="update" class="flex flex-col space-y-indent-half md:flex-row md:space-x-indent-half md:space-y-0">
@@ -49,12 +55,16 @@
                                     </button>
                                 @else
                                     <button type="button" class="btn btn-sm btn-dark px-btn-x-ico rounded-e-none"
-                                            wire:loading.attr="disabled"
+                                            @can("update", $item) wire:loading.attr="disabled"
+                                            @else disabled
+                                            @endcan
                                             wire:click="showEdit({{ $item->id }})">
                                         <x-tt::ico.edit />
                                     </button>
                                     <button type="button" class="btn btn-sm btn-danger px-btn-x-ico rounded-s-none"
-                                            wire:loading.attr="disabled"
+                                            @can("delete", $item) wire:loading.attr="disabled"
+                                            @else disabled
+                                            @endcan
                                             wire:click="showDelete({{ $item->id }})">
                                         <x-tt::ico.trash />
                                     </button>

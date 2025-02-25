@@ -18,6 +18,9 @@ class ArticleLabelsServiceProvider extends ServiceProvider
         // Livewire
         $this->addLivewireComponents();
 
+        // Расширить конфигурацию
+        $this->expandConfiguration();
+
         // Observers
         $labelObserverClass = config("article-labels.customLabelObserver") ?? ArticleLabelObserver::class;
         $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
@@ -40,5 +43,19 @@ class ArticleLabelsServiceProvider extends ServiceProvider
             "al-label-index",
             $component ?? LabelIndexWire::class
         );
+    }
+
+    protected function expandConfiguration(): void
+    {
+        $al = app()->config["article-labels"];
+
+        $um = app()->config["user-management"];
+        $permissions = $um["permissions"];
+        $permissions[] = [
+            "title" => $al["articleLabelPolicyTitle"],
+            "policy" => $al["articleLabelPolicy"],
+            "key" => $al["articleLabelPolicyKey"],
+        ];
+        app()->config["user-management.permissions"] = $permissions;
     }
 }

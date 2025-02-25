@@ -58,11 +58,13 @@ class IndexWire extends Component
     public function showList(): void
     {
         $this->resetFields();
+        if (! $this->checkAuth("viewAny")) return;
         $this->displayList = true;
     }
 
     public function store(): void
     {
+        if (! $this->checkAuth("create")) return;
         $this->validate();
 
         $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
@@ -72,6 +74,7 @@ class IndexWire extends Component
         ]);
 
         session()->flash("labels-success", "Метка успешно добавлена");
+        $this->dispatch("update-list");
     }
 
     public function closeList(): void
@@ -86,6 +89,8 @@ class IndexWire extends Component
         $this->labelId = $labelId;
         $label = $this->findLabel();
         if (! $label) return;
+        if (! $this->checkAuth("update", $label)) return;
+
         $this->displayEdit = true;
         $this->updateTitle = $label->title;
         $this->updateSlug = $label->slug;
@@ -95,6 +100,8 @@ class IndexWire extends Component
     {
         $label = $this->findLabel();
         if (! $label) return;
+        if (! $this->checkAuth("update", $label)) return;
+
         $this->validate();
         $label->update([
             "title" => $this->updateTitle,
@@ -103,6 +110,7 @@ class IndexWire extends Component
 
         session()->flash("labels-success", "Метка успешно обновлена");
         $this->closeEdit();
+        $this->dispatch("update-list");
     }
 
     public function closeEdit(): void
@@ -117,6 +125,8 @@ class IndexWire extends Component
         $this->labelId = $labelId;
         $label = $this->findLabel();
         if (! $label) return;
+        if (! $this->checkAuth("delete", $label)) return;
+
         $this->displayDelete = true;
     }
 
@@ -124,10 +134,13 @@ class IndexWire extends Component
     {
         $label = $this->findLabel();
         if (! $label) return;
+        if (! $this->checkAuth("delete", $label)) return;
+
         $label->delete();
         $this->displayDelete = false;
         $this->resetFields();
         session()->flash("labels-success", "Метка успешно удалена");
+        $this->dispatch("update-list");
     }
 
     public function closeDelete(): void
@@ -138,6 +151,8 @@ class IndexWire extends Component
 
     public function reorderItems(array $newOrder): void
     {
+        if (! $this->checkAuth("order")) return;
+
         foreach ($newOrder as $priority => $id) {
             $this->labelId = $id;
             $label = $this->findLabel();
@@ -162,5 +177,19 @@ class IndexWire extends Component
             return null;
         }
         return $label;
+    }
+
+    protected function checkAuth(string $action, ArticleLabelInterface $label = null): bool
+    {
+        try {
+            $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
+            $this->authorize($action, $label ?? $labelModelClass);
+            return true;
+        } catch (\Exception $exception) {
+            session()->flash("labels-error", __("Unauthorized action"));
+            $this->closeDelete();
+            $this->closeEdit();
+            return false;
+        }
     }
 }
