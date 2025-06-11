@@ -4,6 +4,7 @@ namespace GIS\ArticleLabels;
 
 use GIS\ArticleLabels\Models\ArticleLabel;
 use GIS\ArticleLabels\Observers\ArticleLabelObserver;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use GIS\ArticleLabels\Livewire\Admin\ArticleLabels\IndexWire as LabelIndexWire;
@@ -21,10 +22,11 @@ class ArticleLabelsServiceProvider extends ServiceProvider
         // Расширить конфигурацию
         $this->expandConfiguration();
 
+        // Policies
+        $this->setPolicies();
+
         // Observers
-        $labelObserverClass = config("article-labels.customLabelObserver") ?? ArticleLabelObserver::class;
-        $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
-        $labelModelClass::observe($labelObserverClass);
+        $this->observeModels();
     }
 
     public function register(): void
@@ -34,6 +36,18 @@ class ArticleLabelsServiceProvider extends ServiceProvider
 
         // Config
         $this->mergeConfigFrom(__DIR__ . "/config/article-labels.php", "article-labels");
+    }
+
+    protected function setPolicies(): void
+    {
+        Gate::policy(config("article-labels.customLabelModel") ?? ArticleLabel::class, config("article-labels.articleLabelPolicy"));
+    }
+
+    protected function observeModels(): void
+    {
+        $labelObserverClass = config("article-labels.customLabelObserver") ?? ArticleLabelObserver::class;
+        $labelModelClass = config("article-labels.customLabelModel") ?? ArticleLabel::class;
+        $labelModelClass::observe($labelObserverClass);
     }
 
     protected function addLivewireComponents(): void
