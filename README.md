@@ -11,3 +11,9 @@
 #### Views
 
 Сокращение для представлений: `al`  
+
+#### Livewire Components
+
+Admin
+
+- `al-label-index`: список меток в админке
